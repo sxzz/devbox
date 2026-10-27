@@ -1,6 +1,7 @@
 # Toolchain for agents. Always latest: scripts/rebuild reinstalls on every run,
 # and older toolchains stay reachable through scripts/rollback.
 [tools]
+agent-browser = "latest"
 gh = "latest"
 pnpm = "latest"
 "npm:@anthropic-ai/claude-code" = "latest"

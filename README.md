@@ -11,7 +11,7 @@ A declaratively maintained development environment for coding agents, built with
 | Path | Purpose |
 | --- | --- |
 | `image/Dockerfile` | Based on the official paseo image (pinned by digest); installs mise and apt packages |
-| `image/mise.toml` | Tool list: gh, pnpm, claude-code, codex, pi, playwright-mcp, all at latest |
+| `image/mise.toml` | Tool list: agent-browser, gh, pnpm, claude-code, codex, pi, playwright-mcp, all at latest |
 | `image/apt.txt` | Extra Debian packages |
 | `config/AGENTS.md` | Instructions for agents, synced on start to the global instruction files of claude, codex and pi |
 | `config/mcp.json` | MCP servers, merged into `mcpServers` in `~/.claude/.claude.json` and `~/.pi/agent/mcp.json` |
@@ -56,12 +56,12 @@ For everyday chats that don't involve code, use the `/workspace/chat` project (a
    - Register a bot account and add it as a collaborator with Write access to the target repos.
    - Fill in `DEVBOX_GIT_NAME`/`DEVBOX_GIT_EMAIL` in `.env`, then run `scripts/rebuild`.
    - Run `scripts/shell gh auth login` (with a fine-grained PAT). The credential helper is already set up by `config/gitconfig`; there's no need to run `gh auth setup-git`.
-4. Browser: open the browser desktop and sign in to the sites you need by hand. Agents use the same browser session through the playwright MCP (CDP `127.0.0.1:9222`); claude, codex and pi are all configured for it.
+4. Browser: open the browser desktop and sign in to the sites you need by hand. Agents use the same browser session over CDP (`127.0.0.1:9222`): the `agent-browser` CLI is pointed at it through `AGENT_BROWSER_CDP`, and the playwright MCP is configured for claude, codex and pi as a fallback.
 
 ## Known limitations
 
 - There is no Docker in the container; agents can't run `docker`.
-- paseo's built-in browser tools need a connected browser host (the desktop app). This deployment doesn't enable it; browser automation goes through the playwright MCP.
+- paseo's built-in browser tools need a connected browser host (the desktop app). This deployment doesn't enable it; browser automation goes through agent-browser and the playwright MCP against the shared Chromium.
 
 ## License
 

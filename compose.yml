@@ -45,6 +45,9 @@ services:
       # paseo terminals start $SHELL (falling back to /bin/sh). The login shell in
       # /etc/passwd stays bash, which agents use for their own commands.
       SHELL: /usr/bin/fish
+      # agent-browser drives the shared Chromium by default instead of launching
+      # its own; the image ships no browser.
+      AGENT_BROWSER_CDP: "9222"
       DEVBOX_GIT_NAME: ${DEVBOX_GIT_NAME:-}
       DEVBOX_GIT_EMAIL: ${DEVBOX_GIT_EMAIL:-}
     volumes:
