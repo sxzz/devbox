@@ -48,6 +48,12 @@ services:
       # agent-browser drives the shared Chromium by default instead of launching
       # its own; the image ships no browser.
       AGENT_BROWSER_CDP: "9222"
+      # gog keeps OAuth tokens in its encrypted file keyring under the persistent
+      # home; there is no Secret Service here. The disabled bus stops the keyring
+      # library from trying to spawn a session bus.
+      GOG_KEYRING_BACKEND: file
+      GOG_KEYRING_PASSWORD: ${GOG_KEYRING_PASSWORD:-}
+      DBUS_SESSION_BUS_ADDRESS: "disabled:"
       DEVBOX_GIT_NAME: ${DEVBOX_GIT_NAME:-}
       DEVBOX_GIT_EMAIL: ${DEVBOX_GIT_EMAIL:-}
     volumes:

@@ -12,6 +12,7 @@ You are running inside the devbox container, launched by Paseo.
 - A shared Chromium is available. Drive it with the `agent-browser` CLI (already connected via `AGENT_BROWSER_CDP`; run `agent-browser skills get core` for usage); the `playwright` MCP server reaches the same browser as a fallback. Dev servers on `localhost` are reachable from it.
 - Other agents and I use that browser too: pass your own `--session <name>`, and close the tabs you opened when done. It may already be signed in to websites. Do not sign out, change account settings or passwords, or make purchases.
 - GitHub access is a bot account via `gh`.
+- Google Workspace (Gmail, Calendar, Drive, ...) via the `gog` CLI, signed in to my Google account; see `gog --help`. Sending mail, accepting invites, sharing or deleting files act as me: ask first.
 
 ## Talking to me
 - Reply in the language I write in.

@@ -11,7 +11,7 @@ A declaratively maintained development environment for coding agents, built with
 | Path | Purpose |
 | --- | --- |
 | `image/Dockerfile` | Based on the official paseo image (pinned by digest); installs mise and apt packages |
-| `image/mise.toml` | Tool list: agent-browser, gh, pnpm, claude-code, codex, pi, playwright-mcp, all at latest |
+| `image/mise.toml` | Tool list: agent-browser, gh, gogcli, pnpm, claude-code, codex, pi, playwright-mcp, all at latest |
 | `image/apt.txt` | Extra Debian packages |
 | `config/AGENTS.md` | Instructions for agents, synced on start to the global instruction files of claude, codex and pi |
 | `config/mcp.json` | MCP servers, merged into `mcpServers` in `~/.claude/.claude.json` and `~/.pi/agent/mcp.json` |
@@ -56,7 +56,11 @@ For everyday chats that don't involve code, use the `/workspace/chat` project (a
    - Register a bot account and add it as a collaborator with Write access to the target repos.
    - Fill in `DEVBOX_GIT_NAME`/`DEVBOX_GIT_EMAIL` in `.env`, then run `scripts/rebuild`.
    - Run `scripts/shell gh auth login` (with a fine-grained PAT). The credential helper is already set up by `config/gitconfig`; there's no need to run `gh auth setup-git`.
-4. Browser: open the browser desktop and sign in to the sites you need by hand. Agents use the same browser session over CDP (`127.0.0.1:9222`): the `agent-browser` CLI is pointed at it through `AGENT_BROWSER_CDP`, and the playwright MCP is configured for claude, codex and pi as a fallback.
+4. Google (gogcli):
+   - Fill in `GOG_KEYRING_PASSWORD` in `.env` (generate like the others), then run `scripts/rebuild`. Tokens go to gog's encrypted file keyring under `$DATA_DIR/paseo-home`.
+   - In a Google Cloud project, enable the APIs you need, set the OAuth consent screen to External and **publish** it (Testing apps get refresh tokens that expire after 7 days), then create a **Desktop app** OAuth client and download its JSON.
+   - Copy the JSON into the container's home, then run `scripts/shell gog auth credentials ~/client_secret.json` and `scripts/shell gog auth add you@gmail.com --services gmail,calendar,drive --manual`. Open the printed URL in any browser, grant access, and paste the final redirect URL back. Check with `scripts/shell gog auth doctor --check`.
+5. Browser: open the browser desktop and sign in to the sites you need by hand. Agents use the same browser session over CDP (`127.0.0.1:9222`): the `agent-browser` CLI is pointed at it through `AGENT_BROWSER_CDP`, and the playwright MCP is configured for claude, codex and pi as a fallback.
 
 ## Known limitations
 
