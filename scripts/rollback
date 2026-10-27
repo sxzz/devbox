@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Switch paseo back to an earlier image built by scripts/rebuild.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+if [[ $# -ne 1 ]]; then
+  echo "usage: scripts/rollback <tag>" >&2
+  docker image ls devbox --format '  {{.Tag}}\t{{.CreatedSince}}' >&2
+  exit 1
+fi
+
+docker image inspect "devbox:$1" >/dev/null
+docker tag "devbox:$1" devbox:latest
+docker compose up -d --no-build paseo
+echo "devbox is running devbox:$1"

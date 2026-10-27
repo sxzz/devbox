@@ -1,0 +1,14 @@
+# Toolchain for agents. Always latest: scripts/rebuild reinstalls on every run,
+# and older toolchains stay reachable through scripts/rollback.
+[tools]
+gh = "latest"
+pnpm = "latest"
+"npm:@anthropic-ai/claude-code" = "latest"
+"npm:@openai/codex" = "latest"
+"npm:@earendil-works/pi-coding-agent" = "latest"
+"npm:@playwright/mcp" = "latest"
+
+[settings]
+minimum_release_age = "0"
+# Fixed so the Dockerfile knows where npm tools land (see the claude-code step).
+npm.package_manager = "npm"

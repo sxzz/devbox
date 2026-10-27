@@ -1,0 +1,23 @@
+# Git defaults for agents, picked from sxzz/dotfiles: only what changes the
+# result of commands agents run, not interactive conveniences.
+[init]
+	defaultBranch = main
+[pull]
+	rebase = true
+[rebase]
+	autoStash = true
+[push]
+	default = current
+	autoSetupRemote = true
+[core]
+	autocrlf = input
+[diff]
+	algorithm = histogram
+# Resolved through PATH so the helper survives gh upgrades; `gh auth setup-git`
+# would pin the versioned install path instead.
+[credential "https://github.com"]
+	helper =
+	helper = !gh auth git-credential
+[credential "https://gist.github.com"]
+	helper =
+	helper = !gh auth git-credential

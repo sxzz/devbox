@@ -1,0 +1,7 @@
+# Extra Debian packages on top of the paseo base image
+build-essential
+fish
+jq
+python3
+ripgrep
+unzip

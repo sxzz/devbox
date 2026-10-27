@@ -1,0 +1,52 @@
+name: devbox
+
+services:
+  browser:
+    image: lscr.io/linuxserver/chromium@sha256:f2d4b8b284918d8d65e10921e2fc84c57fd7edbc15345ddb3c024f0949f0031c
+    container_name: devbox-browser
+    restart: unless-stopped
+    shm_size: 1gb
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: ${TZ:-UTC}
+      LC_ALL: en_US.UTF-8
+      CUSTOM_USER: devbox
+      PASSWORD: ${BROWSER_PASSWORD:?}
+      # Keep the desktop off 3000/3001 so agents' dev servers can use them.
+      CUSTOM_PORT: 6900
+      CUSTOM_HTTPS_PORT: 6901
+      # Chrome only binds CDP to localhost; paseo shares this network namespace.
+      CHROME_CLI: --remote-debugging-port=9222 --user-data-dir=/config/chromium-cdp
+    volumes:
+      - ${DATA_DIR:?}/browser-config:/config
+    # paseo uses this service's network, so its ports are published here too.
+    ports:
+      - 127.0.0.1:6767:6767
+      - ${TAILSCALE_IP:?}:6767:6767
+      - 127.0.0.1:6901:6901
+      - ${TAILSCALE_IP:?}:6901:6901
+
+  paseo:
+    build:
+      context: .
+      dockerfile: image/Dockerfile
+    image: devbox:latest
+    container_name: paseo
+    restart: unless-stopped
+    network_mode: service:browser
+    depends_on:
+      - browser
+    environment:
+      PASEO_PASSWORD: ${PASEO_PASSWORD:?}
+      # Clients use the hosted app (app.paseo.sh) instead of the bundled web UI.
+      PASEO_WEB_UI_ENABLED: "false"
+      TZ: ${TZ:-UTC}
+      # paseo terminals start $SHELL (falling back to /bin/sh). The login shell in
+      # /etc/passwd stays bash, which agents use for their own commands.
+      SHELL: /usr/bin/fish
+      DEVBOX_GIT_NAME: ${DEVBOX_GIT_NAME:-}
+      DEVBOX_GIT_EMAIL: ${DEVBOX_GIT_EMAIL:-}
+    volumes:
+      - ${DATA_DIR:?}/paseo-home:/home/paseo
+      - ${DATA_DIR:?}/workspace:/workspace

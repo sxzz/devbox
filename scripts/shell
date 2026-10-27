@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Open a shell (or run a command) in the paseo container as the paseo user.
+set -euo pipefail
+if [[ $# -eq 0 ]]; then
+  set -- fish
+fi
+exec docker exec -it --user paseo -w /workspace paseo "$@"

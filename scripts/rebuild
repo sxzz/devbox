@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Build the image from the current tree, tag it with the commit, and switch to it.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+tag="$(git rev-parse --short HEAD 2>/dev/null || echo init)"
+[[ -z "$(git status --porcelain)" ]] || tag="$tag-dirty"
+
+set -a
+. ./.env
+set +a
+mkdir -p "$DATA_DIR/paseo-home" "$DATA_DIR/browser-config" "$DATA_DIR/workspace"
+
+docker compose build --build-arg TOOLS_CACHE_BUST="$(date +%s)" paseo
+docker tag devbox:latest "devbox:$tag"
+docker compose up -d
+echo "devbox is running devbox:$tag"

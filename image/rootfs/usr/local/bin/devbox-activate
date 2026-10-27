@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Syncs config baked into /etc/devbox into the persistent home. Managed files
+# and blocks are rewritten on every start; anything else agents write is kept.
+set -euo pipefail
+src=/etc/devbox
+
+install -D -m 644 "$src/AGENTS.md" "$CLAUDE_CONFIG_DIR/CLAUDE.md"
+install -D -m 644 "$src/AGENTS.md" "$CODEX_HOME/AGENTS.md"
+install -D -m 644 "$src/AGENTS.md" "$HOME/.pi/agent/AGENTS.md"
+
+# Merge so servers added at runtime survive; Claude also keeps its own state
+# in .claude.json.
+merge_mcp() {
+  local file="$1" tmp
+  mkdir -p "$(dirname "$file")"
+  [[ -s $file ]] || echo '{}' >"$file"
+  tmp="$(mktemp "$file.XXXXXX")"
+  jq --slurpfile m "$src/mcp.json" '.mcpServers = ((.mcpServers // {}) + $m[0])' "$file" >"$tmp"
+  mv "$tmp" "$file"
+}
+merge_mcp "$CLAUDE_CONFIG_DIR/.claude.json"
+merge_mcp "$HOME/.pi/agent/mcp.json"
+
+# Deep-merge managed keys over the user's settings; keys set elsewhere (e.g.
+# via /config) are kept.
+claude_settings="$CLAUDE_CONFIG_DIR/settings.json"
+[[ -s $claude_settings ]] || echo '{}' >"$claude_settings"
+tmp="$(mktemp "$claude_settings.XXXXXX")"
+jq --slurpfile m "$src/claude-settings.json" '. * $m[0]' "$claude_settings" >"$tmp"
+mv "$tmp" "$claude_settings"
+
+codex_toml="$CODEX_HOME/config.toml"
+touch "$codex_toml"
+sed -i '/^# >>> devbox managed/,/^# <<< devbox managed/d' "$codex_toml"
+{
+  echo '# >>> devbox managed (edit in the devbox repo, not here)'
+  cat "$src/codex.toml"
+  echo '# <<< devbox managed'
+} >>"$codex_toml"
+
+# The managed file sets the gh credential helper; drop the copies an earlier
+# `gh auth setup-git` pinned to a versioned gh path.
+for host in github.com gist.github.com; do
+  git config --global --remove-section "credential.https://$host" 2>/dev/null || true
+done
+git config --global --replace-all include.path /etc/devbox/gitconfig '^/etc/devbox/gitconfig$'
+
+if [[ -n ${DEVBOX_GIT_NAME:-} ]]; then
+  git config --global user.name "$DEVBOX_GIT_NAME"
+fi
+if [[ -n ${DEVBOX_GIT_EMAIL:-} ]]; then
+  git config --global user.email "$DEVBOX_GIT_EMAIL"
+fi
