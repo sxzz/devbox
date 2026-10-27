@@ -18,6 +18,9 @@ services:
       CUSTOM_HTTPS_PORT: 6901
       # Chrome only binds CDP to localhost; paseo shares this network namespace.
       CHROME_CLI: --remote-debugging-port=9222 --user-data-dir=/config/chromium-cdp
+      # The image launches Chromium once; without its watchdog, a closed window
+      # or a desktop teardown leaves agents with no CDP until the next restart.
+      RESTART_APP: "true"
     volumes:
       - ${DATA_DIR:?}/browser-config:/config
     # paseo uses this service's network, so its ports are published here too.
