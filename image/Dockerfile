@@ -26,7 +26,7 @@ RUN set -eux; \
 ENV MISE_DATA_DIR=/opt/mise \
     MISE_GLOBAL_CONFIG_FILE=/etc/mise/config.toml \
     MISE_YES=1 \
-    PATH=/opt/mise/shims:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    PATH=/usr/local/lib/devbox/bin:/opt/mise/shims:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 COPY image/mise.toml /etc/mise/config.toml
 # Changed by scripts/rebuild on every run so "latest" is re-resolved instead of
 # reusing the cached layer.
@@ -44,6 +44,6 @@ RUN set -eux; \
 
 COPY config/ /etc/devbox/
 COPY image/rootfs/ /
-RUN chmod +x /usr/local/bin/devbox-*
+RUN chmod +x /usr/local/bin/devbox-* /usr/local/lib/devbox/bin/*
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/devbox-entrypoint"]

@@ -13,6 +13,7 @@ You are running inside the devbox container, launched by Paseo.
 - Other agents and I use that browser too: pass your own `--session <name>`, and close the tabs you opened when done. It may already be signed in to websites. Do not sign out, change account settings or passwords, or make purchases.
 - GitHub access is a bot account via `gh`.
 - Google Workspace (Gmail, Calendar, Drive, ...) via the `gog` CLI, signed in to my Google account; see `gog --help`. Sending mail, accepting invites, sharing or deleting files act as me: ask first.
+- Gmail is draft-only: `gog` blocks sending, replying, forwarding and trashing. To send mail, create a draft (`gog gmail drafts create`, or `drafts reply`/`drafts forward`), tell me its subject and recipients, and I send it from Gmail myself. Do not try to work around the block.
 
 ## Talking to me
 - Reply in the language I write in.

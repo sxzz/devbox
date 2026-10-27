@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Shadows the mise shim so every agent call carries the Gmail guards: agents
+# write drafts and I send them from Gmail myself. Trash and draft deletion are
+# blocked too; gmail.modify can't delete permanently anyway. This only stops
+# accidents: the token in the keyring can still send if used directly.
+exec /opt/mise/shims/gog \
+  --gmail-no-send \
+  --disable-commands send,api,gmail.send,gmail.reply,gmail.reply-all,gmail.forward,gmail.autoreply,gmail.drafts.send,gmail.drafts.delete,gmail.trash,gmail.batch.delete \
+  "$@"
