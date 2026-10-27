@@ -23,6 +23,7 @@ services:
       RESTART_APP: "true"
     volumes:
       - ${DATA_DIR:?}/browser-config:/config
+      - ./browser/cont-init.d:/custom-cont-init.d:ro
     # paseo uses this service's network, so its ports are published here too.
     ports:
       - 127.0.0.1:6767:6767

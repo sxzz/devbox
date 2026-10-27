@@ -15,3 +15,15 @@ docker compose build --build-arg TOOLS_CACHE_BUST="$(date +%s)" paseo
 docker tag devbox:latest "devbox:$tag"
 docker compose up -d
 echo "devbox is running devbox:$tag"
+
+# Every build reinstalls the toolchain into a fresh ~1 GB layer, so old images
+# pile up. Keep the newest few for scripts/rollback and drop the rest; tags
+# sharing an image count once, and the running image is always kept.
+keep=3
+current="$(docker image inspect -f '{{.Id}}' devbox:latest)"
+docker image ls devbox --no-trunc --format '{{.ID}}' | awk '!seen[$0]++' |
+  tail -n +"$((keep + 1))" | while read -r id; do
+    [[ $id == "$current" ]] && continue
+    docker image ls devbox --no-trunc --format '{{.ID}} {{.Repository}}:{{.Tag}}' |
+      awk -v id="$id" '$1 == id { print $2 }' | xargs docker image rm || true
+  done
