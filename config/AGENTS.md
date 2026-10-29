@@ -1,6 +1,6 @@
 # Global rules
 
-Shared by Claude Code, Codex and pi. Keep it agent-neutral and short: only what an agent wouldn't do right by default.
+Shared by Claude Code, Codex, pi and Grok. Keep it agent-neutral and short: only what an agent wouldn't do right by default.
 
 Source: `config/AGENTS.md` in the devbox repo (`/workspace/devbox`). On every container start it is copied to each agent's global instructions file, overwriting them; edit the repo copy, never the copies in home. Changes take effect after `scripts/rebuild` on the host.
 

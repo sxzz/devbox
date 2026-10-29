@@ -9,6 +9,7 @@ pnpm = "latest"
 "npm:@anthropic-ai/claude-code" = "latest"
 "npm:@openai/codex" = "latest"
 "npm:@earendil-works/pi-coding-agent" = "latest"
+grok = "latest"
 "npm:@playwright/mcp" = "latest"
 
 [settings]

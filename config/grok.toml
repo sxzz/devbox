@@ -1,0 +1,20 @@
+# Installed as ~/.grok/managed_config.toml. Grok rewrites config.toml and drops
+# comments, so a marked block like codex's can't survive there; this layer is
+# never written by Grok and sits below config.toml, so /settings still wins.
+
+[cli]
+# mise owns the version; scripts/rebuild reinstalls latest.
+auto_update = false
+
+[mcp_servers.playwright]
+command = "playwright-mcp"
+args = ["--cdp-endpoint", "http://127.0.0.1:9222"]
+
+# ~/.grok/rules/devbox.md and the server above cover these already; scanning ~/.claude
+# too would load the global rules and playwright twice, plus Claude-only
+# skills and hooks.
+[compat.claude]
+agents = false
+skills = false
+mcps = false
+hooks = false

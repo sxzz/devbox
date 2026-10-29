@@ -7,6 +7,10 @@ src=/etc/devbox
 install -D -m 644 "$src/AGENTS.md" "$CLAUDE_CONFIG_DIR/CLAUDE.md"
 install -D -m 644 "$src/AGENTS.md" "$CODEX_HOME/AGENTS.md"
 install -D -m 644 "$src/AGENTS.md" "$HOME/.pi/agent/AGENTS.md"
+# Not ~/.grok/AGENTS.md: home is case-insensitive here and Grok probes both
+# Agents.md and AGENTS.md, loading the same file twice. Rules dirs are listed.
+install -D -m 644 "$src/AGENTS.md" "$HOME/.grok/rules/devbox.md"
+install -D -m 644 "$src/grok.toml" "$HOME/.grok/managed_config.toml"
 
 # Merge so servers added at runtime survive; Claude also keeps its own state
 # in .claude.json.

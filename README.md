@@ -11,11 +11,12 @@ A declaratively maintained development environment for coding agents, built with
 | Path | Purpose |
 | --- | --- |
 | `image/Dockerfile` | Based on the official paseo image (pinned by digest); installs mise and apt packages |
-| `image/mise.toml` | Tool list: agent-browser, gh, gogcli, pnpm, claude-code, codex, pi, playwright-mcp, all at latest |
+| `image/mise.toml` | Tool list: agent-browser, gh, gogcli, pnpm, claude-code, codex, pi, grok, playwright-mcp, all at latest |
 | `image/apt.txt` | Extra Debian packages |
-| `config/AGENTS.md` | Instructions for agents, synced on start to the global instruction files of claude, codex and pi |
+| `config/AGENTS.md` | Instructions for agents, synced on start to the global instruction files of claude, codex and pi, and to `~/.grok/rules/devbox.md` for grok |
 | `config/mcp.json` | MCP servers, merged into `mcpServers` in `~/.claude/.claude.json` and `~/.pi/agent/mcp.json` |
 | `config/codex.toml` | Managed block written into `~/.codex/config.toml` |
+| `config/grok.toml` | Overwrites `~/.grok/managed_config.toml`, the layer below `~/.grok/config.toml`; also turns off Grok's scan of `~/.claude` |
 | `config/gitconfig` | Included from `~/.gitconfig`: git defaults for agents and the gh credential helper |
 | `config/claude-settings.json` | Deep-merged into `~/.claude/settings.json`; keys here override existing values |
 | `image/rootfs/usr/local/bin/devbox-activate` | Runs on every container start and syncs `config/` into home |
@@ -51,7 +52,7 @@ For everyday chats that don't involve code, use the `/workspace/chat` project (a
 ## First-time setup
 
 1. `cp .env.example .env`, generate the two passwords and fill them in along with `TAILSCALE_IP`, run `chmod 600 .env`, then run `scripts/rebuild`.
-2. Agent login (credentials are stored in `$DATA_DIR/paseo-home`): run `scripts/shell`, then `claude`, `codex` and `pi` in turn.
+2. Agent login (credentials are stored in `$DATA_DIR/paseo-home`): run `scripts/shell`, then `claude`, `codex`, `pi` and `grok` in turn.
 3. GitHub bot:
    - Register a bot account and add it as a collaborator with Write access to the target repos.
    - Fill in `DEVBOX_GIT_NAME`/`DEVBOX_GIT_EMAIL` in `.env`, then run `scripts/rebuild`.
@@ -61,7 +62,7 @@ For everyday chats that don't involve code, use the `/workspace/chat` project (a
    - In a Google Cloud project, enable the APIs you need, set the OAuth consent screen to External and **publish** it (Testing apps get refresh tokens that expire after 7 days), then create a **Desktop app** OAuth client and download its JSON.
    - Copy the JSON into the container's home, then run `scripts/shell gog auth credentials ~/client_secret.json` and `scripts/shell gog auth add you@gmail.com --services gmail,calendar,drive --gmail-scope readonly --extra-scopes https://www.googleapis.com/auth/gmail.modify --manual`. Open the printed URL in any browser, grant access, and paste the final redirect URL back. Check with `scripts/shell gog auth doctor --check`.
    - Gmail is draft-only for agents. The OAuth grant is `gmail.modify` without the settings scopes (no permanent delete, filters or forwarding), and `/usr/local/lib/devbox/bin/gog` shadows the real binary to block sending and trashing. Agents leave drafts; you send them from Gmail. The token itself can still send, so this guards against mistakes, not against an agent that bypasses `gog`.
-5. Browser: open the browser desktop and sign in to the sites you need by hand. Agents use the same browser session over CDP (`127.0.0.1:9222`): the `agent-browser` CLI is pointed at it through `AGENT_BROWSER_CDP`, and the playwright MCP is configured for claude, codex and pi as a fallback.
+5. Browser: open the browser desktop and sign in to the sites you need by hand. Agents use the same browser session over CDP (`127.0.0.1:9222`): the `agent-browser` CLI is pointed at it through `AGENT_BROWSER_CDP`, and the playwright MCP is configured for claude, codex, pi and grok as a fallback.
 
 ## Known limitations
 
