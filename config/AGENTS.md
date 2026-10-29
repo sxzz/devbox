@@ -37,7 +37,6 @@ Depends on the project. Infer which kind from the repo (published package, `"pri
 Local clones live directly under `/workspace` (`/workspace/<repo-name>`).
 
 Remotes:
-- Every stored `remote.*.url` / `pushurl` is `https://github.com/<owner>/<repo>.git` (HTTPS, with `.git`), including forks and upstreams.
 - `origin` is the canonical repo. In someone else's project, my fork is the remote `sxzz`. A contributor's remote added to check out their PR is named after their GitHub login.
 - Fix remotes that point at a renamed or transferred repo (check with `gh api repos/<owner>/<repo>`).
 
