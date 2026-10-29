@@ -11,7 +11,7 @@ set -a
 set +a
 mkdir -p "$DATA_DIR/paseo-home" "$DATA_DIR/browser-config" "$DATA_DIR/workspace"
 
-docker compose build --build-arg TOOLS_CACHE_BUST="$(date +%s)" paseo
+docker compose build --pull --build-arg TOOLS_CACHE_BUST="$(date +%s)" paseo
 docker tag devbox:latest "devbox:$tag"
 docker compose up -d
 echo "devbox is running devbox:$tag"

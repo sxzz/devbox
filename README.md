@@ -10,7 +10,7 @@ A declaratively maintained development environment for coding agents, built with
 
 | Path | Purpose |
 | --- | --- |
-| `image/Dockerfile` | Based on the official paseo image (pinned by digest); installs mise and apt packages |
+| `image/Dockerfile` | Based on the official paseo image (latest); installs the latest mise and apt packages |
 | `image/mise.toml` | Tool list: agent-browser, gh, gogcli, pnpm, claude-code, codex, pi, grok, playwright-mcp, all at latest |
 | `image/apt.txt` | Extra Debian packages |
 | `config/AGENTS.md` | Instructions for agents, synced on start to the global instruction files of claude, codex and pi, and to `~/.grok/rules/devbox.md` for grok |
@@ -36,7 +36,7 @@ scripts/shell             # open a shell in the container as the paseo user
 scripts/shell gh auth status
 ```
 
-Upgrading tools: everything in `image/mise.toml` is latest, so every `scripts/rebuild` reinstalls the newest versions. If an upgrade breaks something, use `scripts/rollback` to return to an older image. Upgrading paseo: replace the digest in `image/Dockerfile` with a new one (look it up with `docker buildx imagetools inspect ghcr.io/getpaseo/paseo:latest`), then run `scripts/rebuild`.
+Upgrading: the paseo base image, mise and everything in `image/mise.toml` track latest, so every `scripts/rebuild` pulls the newest base image and reinstalls the newest versions. If an upgrade breaks something, use `scripts/rollback` to return to an older image.
 
 ## Access
 
