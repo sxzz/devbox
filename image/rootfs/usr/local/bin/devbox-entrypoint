@@ -2,8 +2,8 @@
 # Applies repo-managed config before handing over to the upstream entrypoint.
 set -euo pipefail
 
-mkdir -p "$HOME" "$CLAUDE_CONFIG_DIR" "$CODEX_HOME"
-chown paseo:paseo "$HOME" "$CLAUDE_CONFIG_DIR" "$CODEX_HOME"
+mkdir -p "$HOME" "$HOME/workspace" "$CLAUDE_CONFIG_DIR" "$CODEX_HOME"
+chown paseo:paseo "$HOME" "$HOME/workspace" "$CLAUDE_CONFIG_DIR" "$CODEX_HOME"
 gosu paseo /usr/local/bin/devbox-activate
 
 exec /usr/local/bin/paseo-docker-entrypoint "$@"

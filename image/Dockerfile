@@ -53,6 +53,10 @@ RUN --mount=type=cache,target=/root/.cache/mise/downloads-cas \
     done; \
     chown -R paseo:paseo /opt/mise
 
+# Keep /workspace on the same mount as home: pnpm picks one store per mount and
+# hardlinks can't cross mounts, so a separate /workspace mount duplicates stores.
+RUN rm -rf /workspace && ln -s /home/paseo/workspace /workspace
+
 COPY config/ /etc/devbox/
 COPY image/rootfs/ /
 RUN chmod +x /usr/local/bin/devbox-* /usr/local/lib/devbox/bin/*

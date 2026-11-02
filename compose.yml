@@ -87,4 +87,3 @@ services:
       DEVBOX_GIT_EMAIL: ${DEVBOX_GIT_EMAIL:-}
     volumes:
       - ${DATA_DIR:?}/paseo-home:/home/paseo
-      - ${DATA_DIR:?}/workspace:/workspace

@@ -6,7 +6,7 @@ Source: `config/AGENTS.md` in the devbox repo (`/workspace/devbox`). On every co
 
 ## Environment
 You are running inside the devbox container, launched by Paseo.
-- Only `/workspace` and the home directory persist; nothing else from the host is mounted.
+- Only the home directory persists (`/workspace` is a symlink to `~/workspace`); nothing else from the host is mounted.
 - There is no Docker in this container. Do not try to install or start one.
 - Use `mise` to add tool versions a project needs (`mise use node@20` in the project).
 - A shared Chromium is available. Drive it with the `agent-browser` CLI (already connected via `AGENT_BROWSER_CDP`; run `agent-browser skills get core` for usage); the `playwright` MCP server reaches the same browser as a fallback. Dev servers on `localhost` are reachable from it.

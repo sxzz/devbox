@@ -3,7 +3,7 @@
 A declaratively maintained development environment for coding agents, built with Docker: a paseo daemon plus a shared Chromium, running on the local OrbStack.
 
 - **The repo holds only declarations**: the image, tool versions, agent config and compose file all live here. Changes take effect after `scripts/rebuild`.
-- **State lives outside the repo**: `$DATA_DIR` (default `~/app/paseo`) holds credentials, the browser profile and workspaces. Rebuilds don't touch it.
+- **State lives outside the repo**: `$DATA_DIR` (default `~/app/paseo`) holds credentials, the browser profile and, under `paseo-home/workspace`, the projects (`/workspace` inside the container is a symlink to `~/workspace`). Rebuilds don't touch it.
 - **Isolation**: the container mounts only directories under `$DATA_DIR`. It does not mount `~/.ssh`, `~/.config/gh` or `docker.sock`. Other services may run on the same Docker daemon, so never give the container Docker access.
 
 ## Layout
