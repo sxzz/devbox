@@ -1,11 +1,41 @@
 name: devbox
 
 services:
+  # Owns the network namespace shared by browser and paseo, so the container is
+  # itself a tailnet node: every port agents listen on (dev servers) is
+  # reachable from the tailnet at http://devbox:<port>.
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: devbox-tailscale
+    hostname: devbox
+    restart: unless-stopped
+    environment:
+      TS_HOSTNAME: devbox
+      TS_STATE_DIR: /var/lib/tailscale
+      # Only needed for the first login; the node key is kept in the state dir.
+      TS_AUTHKEY: ${TS_AUTHKEY:-}
+      TS_USERSPACE: "false"
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ${DATA_DIR:?}/tailscale:/var/lib/tailscale
+    # Chromium and paseo share this network, so their ports are published here.
+    ports:
+      - 127.0.0.1:6767:6767
+      - ${TAILSCALE_IP:?}:6767:6767
+      - 127.0.0.1:6901:6901
+      - ${TAILSCALE_IP:?}:6901:6901
+
   browser:
     image: lscr.io/linuxserver/chromium@sha256:f2d4b8b284918d8d65e10921e2fc84c57fd7edbc15345ddb3c024f0949f0031c
     container_name: devbox-browser
     restart: unless-stopped
     shm_size: 1gb
+    network_mode: service:tailscale
+    depends_on:
+      - tailscale
     environment:
       PUID: 1000
       PGID: 1000
@@ -24,12 +54,6 @@ services:
     volumes:
       - ${DATA_DIR:?}/browser-config:/config
       - ./browser/cont-init.d:/custom-cont-init.d:ro
-    # paseo uses this service's network, so its ports are published here too.
-    ports:
-      - 127.0.0.1:6767:6767
-      - ${TAILSCALE_IP:?}:6767:6767
-      - 127.0.0.1:6901:6901
-      - ${TAILSCALE_IP:?}:6901:6901
 
   paseo:
     build:
@@ -38,8 +62,9 @@ services:
     image: devbox:latest
     container_name: paseo
     restart: unless-stopped
-    network_mode: service:browser
+    network_mode: service:tailscale
     depends_on:
+      - tailscale
       - browser
     environment:
       PASEO_PASSWORD: ${PASEO_PASSWORD:?}

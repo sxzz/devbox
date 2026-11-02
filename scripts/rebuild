@@ -9,7 +9,7 @@ tag="$(git rev-parse --short HEAD 2>/dev/null || echo init)"
 set -a
 . ./.env
 set +a
-mkdir -p "$DATA_DIR/paseo-home" "$DATA_DIR/browser-config" "$DATA_DIR/workspace"
+mkdir -p "$DATA_DIR/paseo-home" "$DATA_DIR/browser-config" "$DATA_DIR/tailscale" "$DATA_DIR/workspace"
 
 docker compose build --pull --build-arg TOOLS_CACHE_BUST="$(date +%s)" paseo
 docker tag devbox:latest "devbox:$tag"

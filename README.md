@@ -20,7 +20,7 @@ A declaratively maintained development environment for coding agents, built with
 | `config/gitconfig` | Included from `~/.gitconfig`: git defaults for agents and the gh credential helper |
 | `config/claude-settings.json` | Deep-merged into `~/.claude/settings.json`; keys here override existing values |
 | `image/rootfs/usr/local/bin/devbox-activate` | Runs on every container start and syncs `config/` into home |
-| `compose.yml` | Two services, `browser` (Chromium) and `paseo`; paseo shares the browser's network |
+| `compose.yml` | Three services: `tailscale` (owns the network and is its own tailnet node), `browser` (Chromium) and `paseo`; the latter two share tailscale's network |
 
 Config falls into two kinds:
 - Files and blocks managed by `config/` are overwritten on every start. Change them in the repo, not inside the container.
@@ -43,6 +43,7 @@ Upgrading: the paseo base image, mise and everything in `image/mise.toml` track 
 | Service | Address |
 | --- | --- |
 | paseo daemon | `127.0.0.1:6767`, or `$TAILSCALE_IP:6767` over Tailscale; password is `PASEO_PASSWORD`. There is no bundled web UI; use the hosted app.paseo.sh, the desktop app or the mobile app |
+| Dev servers | `http://devbox:<port>` (MagicDNS) or the container's own tailnet IP, from any device in the tailnet. Servers must listen on `0.0.0.0`, not just `localhost` |
 | Browser desktop | `https://127.0.0.1:6901`, self-signed certificate, username `devbox`, password is `BROWSER_PASSWORD` |
 
 app.paseo.sh, the mobile app and the desktop app can all connect directly with the address and password above (from inside the tailnet). For devices outside Tailscale, run `scripts/shell paseo daemon pair` to enable the relay, then paste the pairing link.
@@ -51,7 +52,7 @@ For everyday chats that don't involve code, use the `/workspace/chat` project (a
 
 ## First-time setup
 
-1. `cp .env.example .env`, generate the two passwords and fill them in along with `TAILSCALE_IP`, run `chmod 600 .env`, then run `scripts/rebuild`.
+1. `cp .env.example .env`, generate the two passwords and fill them in along with `TAILSCALE_IP` and `TS_AUTHKEY` (an auth key from the Tailscale admin console; the container joins the tailnet as `devbox`, and the login persists in `$DATA_DIR/tailscale`, so the key can be removed from `.env` afterwards), run `chmod 600 .env`, then run `scripts/rebuild`.
 2. Agent login (credentials are stored in `$DATA_DIR/paseo-home`): run `scripts/shell`, then `claude`, `codex`, `pi` and `grok` in turn.
 3. GitHub bot:
    - Register a bot account and add it as a collaborator with Write access to the target repos.
@@ -67,6 +68,7 @@ For everyday chats that don't involve code, use the `/workspace/chat` project (a
 ## Known limitations
 
 - There is no Docker in the container; agents can't run `docker`.
+- The tailscale container needs `/dev/net/tun` and `NET_ADMIN`; restarting it also restarts `browser` and `paseo`'s network, so run `scripts/rebuild` (or `docker compose up -d`) rather than restarting it alone.
 - paseo's built-in browser tools need a connected browser host (the desktop app). This deployment doesn't enable it; browser automation goes through agent-browser and the playwright MCP against the shared Chromium.
 
 ## License
