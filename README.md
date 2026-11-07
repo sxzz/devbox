@@ -11,7 +11,7 @@ A declaratively maintained development environment for coding agents, built with
 | Path | Purpose |
 | --- | --- |
 | `image/Dockerfile` | Based on the official paseo image (latest); installs the latest mise and apt packages |
-| `image/mise.toml` | Tool list: agent-browser, gh, gogcli, pnpm, claude-code, codex, pi, grok, playwright-mcp, all at latest |
+| `image/mise.toml` | Tool list: agent-browser, gh, gogcli, bun, pnpm, claude-code, codex, pi, grok, playwright-mcp, all at latest |
 | `image/apt.txt` | Extra Debian packages |
 | `config/AGENTS.md` | Instructions for agents, synced on start to the global instruction files of claude, codex and pi, and to `~/.grok/rules/devbox.md` for grok |
 | `config/mcp.json` | MCP servers, merged into `mcpServers` in `~/.claude/.claude.json` and `~/.pi/agent/mcp.json` |

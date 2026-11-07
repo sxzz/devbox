@@ -5,6 +5,7 @@ agent-browser = "latest"
 gh = "latest"
 # Google Workspace CLI (`gog`); not in the mise registry.
 "github:openclaw/gogcli" = "latest"
+bun = "latest"
 pnpm = "latest"
 "npm:@anthropic-ai/claude-code" = "latest"
 "npm:@openai/codex" = "latest"
