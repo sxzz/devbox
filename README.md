@@ -69,6 +69,7 @@ For everyday chats that don't involve code, use the `/workspace/chat` project (a
 
 - There is no Docker in the container; agents can't run `docker`.
 - The tailscale container needs `/dev/net/tun` and `NET_ADMIN`; restarting it also restarts `browser` and `paseo`'s network, so run `scripts/rebuild` (or `docker compose up -d`) rather than restarting it alone.
+- OrbStack drops replies on published UDP ports, so other LAN devices can't connect to `devbox` directly and fall back to DERP. Make the host a [peer relay](https://tailscale.com/docs/features/peer-relay) instead: run `tailscale set --relay-server-port=40000` on the host, and grant `tailscale.com/cap/relay` from `devbox` and the other devices (by tailnet IP, not a wildcard) to the host in the tailnet policy. `tailscale status | grep peer-relay` shows it in use.
 - paseo's built-in browser tools need a connected browser host (the desktop app). This deployment doesn't enable it; browser automation goes through agent-browser and the playwright MCP against the shared Chromium.
 
 ## License
