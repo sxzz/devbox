@@ -9,7 +9,7 @@ You are running inside the devbox container, launched by Paseo.
 - Only the home directory persists (`/workspace` is a symlink to `~/workspace`); nothing else from the host is mounted.
 - There is no Docker in this container. Do not try to install or start one.
 - The container is a Tailscale node (hostname `devbox`); ports are reachable only over the tailnet at `http://devbox:<port>`. Dev servers must listen on all interfaces, not just `localhost` (e.g. `vite --host`), or I can't open them. The shared Chromium still reaches them on `localhost`.
-- Use `mise` to add tool versions a project needs (`mise use node@20` in the project).
+- Rust comes from rustup; `rust-toolchain.toml` is honored automatically. For any other toolchain or version not on PATH, install and run it on demand with `mise exec` (`mise exec python@3.12 -- python script.py`), not `mise use`, which writes a `mise.toml` into the project.
 - A shared Chromium is available. Drive it with the `agent-browser` CLI (already connected via `AGENT_BROWSER_CDP`; run `agent-browser skills get core` for usage); the `playwright` MCP server reaches the same browser as a fallback. Dev servers on `localhost` are reachable from it.
 - Other agents and I use that browser too: pass your own `--session <name>`, and close the tabs you opened when done. It may already be signed in to websites. Do not sign out, change account settings or passwords, or make purchases.
 - GitHub access is a bot account via `gh`.
