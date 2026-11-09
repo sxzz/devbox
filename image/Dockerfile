@@ -30,7 +30,7 @@ RUN set -eux; \
 ENV MISE_DATA_DIR=/opt/mise \
     MISE_GLOBAL_CONFIG_FILE=/etc/mise/config.toml \
     MISE_YES=1 \
-    PATH=/usr/local/lib/devbox/bin:/opt/mise/shims:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    PATH=/usr/local/lib/devbox/bin:/opt/mise/shims:/opt/cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 COPY image/mise.toml /etc/mise/config.toml
 # The cache bust reruns this step every time, so keep downloads in BuildKit
 # cache mounts: a tool whose latest version hasn't changed is installed from
@@ -52,6 +52,32 @@ RUN --mount=type=cache,target=/root/.cache/mise/downloads-cas \
       case "$p" in /root/.cache/mise | /root/.cache/mise/downloads-cas) ;; *) rm -rf "$p" ;; esac; \
     done; \
     chown -R paseo:paseo /opt/mise
+
+# Rust via rustup, latest stable as the default toolchain. Owned by `paseo` so
+# agents can add toolchains, targets and components, and rust-toolchain.toml
+# files work as usual.
+ENV RUSTUP_HOME=/opt/rustup \
+    CARGO_HOME=/opt/cargo
+# rustup deletes its downloads after installing, so cache the whole install
+# instead: when stable hasn't moved, the cache bust above costs only a manifest
+# check and a local copy. rustup and the toolchain are relocatable.
+RUN --mount=type=cache,target=/var/cache/devbox-rust,sharing=locked \
+    set -eux; \
+    export RUSTUP_HOME=/var/cache/devbox-rust/rustup CARGO_HOME=/var/cache/devbox-rust/cargo; \
+    if [ ! -x "$CARGO_HOME/bin/rustup" ]; then \
+      curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | \
+        sh -s -- -y --no-modify-path --profile minimal --default-toolchain none; \
+    fi; \
+    rustup="$CARGO_HOME/bin/rustup"; \
+    "$rustup" self update; \
+    "$rustup" set profile minimal; \
+    # Updates the toolchain in place when it is already in the cache.
+    "$rustup" toolchain install stable --component clippy,rustfmt; \
+    "$rustup" default stable; \
+    mkdir -p /opt/rustup /opt/cargo; \
+    cp -a "$RUSTUP_HOME/." /opt/rustup/; \
+    cp -a "$CARGO_HOME/bin" /opt/cargo/; \
+    chown -R paseo:paseo /opt/rustup /opt/cargo
 
 # Keep /workspace on the same mount as home: pnpm picks one store per mount and
 # hardlinks can't cross mounts, so a separate /workspace mount duplicates stores.

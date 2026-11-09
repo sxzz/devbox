@@ -10,7 +10,7 @@ A declaratively maintained development environment for coding agents, built with
 
 | Path | Purpose |
 | --- | --- |
-| `image/Dockerfile` | Based on the official paseo image (latest); installs the latest mise and apt packages |
+| `image/Dockerfile` | Based on the official paseo image (latest); installs the latest mise, rustup with the latest stable Rust (`/opt/rustup`, `/opt/cargo`), and apt packages |
 | `image/mise.toml` | Tool list: agent-browser, gh, gogcli, bun, pnpm, claude-code, codex, pi, grok, playwright-mcp, all at latest |
 | `image/apt.txt` | Extra Debian packages |
 | `config/AGENTS.md` | Instructions for agents, synced on start to the global instruction files of claude, codex and pi, and to `~/.grok/rules/devbox.md` for grok |
@@ -36,7 +36,7 @@ scripts/shell             # open a shell in the container as the paseo user
 scripts/shell gh auth status
 ```
 
-Upgrading: the paseo base image, mise and everything in `image/mise.toml` track latest, so every `scripts/rebuild` pulls the newest base image and reinstalls the newest versions. If an upgrade breaks something, use `scripts/rollback` to return to an older image.
+Upgrading: the paseo base image, mise, Rust stable and everything in `image/mise.toml` track latest, so every `scripts/rebuild` pulls the newest base image and reinstalls the newest versions. If an upgrade breaks something, use `scripts/rollback` to return to an older image.
 
 ## Access
 
