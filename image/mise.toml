@@ -9,6 +9,10 @@ bun = "latest"
 pnpm = "latest"
 "npm:@anthropic-ai/claude-code" = "latest"
 "npm:@openai/codex" = "latest"
+# ACP adapters Alma runs Claude Code and Codex through. Installed so Alma
+# doesn't fetch them with npx on first use.
+"npm:acp-extension-claude" = "latest"
+"npm:@agentclientprotocol/codex-acp" = "latest"
 "npm:@earendil-works/pi-coding-agent" = "latest"
 grok = "latest"
 "npm:@playwright/mcp" = "latest"
