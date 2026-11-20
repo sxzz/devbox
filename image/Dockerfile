@@ -79,6 +79,28 @@ RUN --mount=type=cache,target=/var/cache/devbox-rust,sharing=locked \
     cp -a "$CARGO_HOME/bin" /opt/cargo/; \
     chown -R paseo:paseo /opt/rustup /opt/cargo
 
+# alma-server (Alma without a desktop), latest release, run by the `alma`
+# compose service next to the paseo daemon. Release assets carry the version
+# in their name, so read it off the /releases/latest redirect. The ~200 MB
+# tarball is kept in a cache mount, so an unchanged version isn't downloaded
+# again.
+RUN --mount=type=cache,target=/var/cache/devbox-alma,sharing=locked \
+    set -eux; \
+    case "$TARGETARCH" in amd64) arch=x64 ;; arm64) arch=arm64 ;; *) exit 1 ;; esac; \
+    tag="$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/yetone/alma-releases/releases/latest)"; \
+    version="${tag##*/v}"; \
+    name="alma-server-$version-linux-$arch"; \
+    tarball="/var/cache/devbox-alma/$name.tar.gz"; \
+    if [ ! -f "$tarball" ]; then \
+      curl -fsSL -o "$tarball.part" "https://github.com/yetone/alma-releases/releases/download/v$version/$name.tar.gz"; \
+      mv "$tarball.part" "$tarball"; \
+    fi; \
+    find /var/cache/devbox-alma -type f ! -path "$tarball" -delete; \
+    tar -xzf "$tarball" -C /opt --no-same-owner; \
+    mv "/opt/$name" /opt/alma-server; \
+    ln -s /opt/alma-server/bin/alma-server /usr/local/bin/alma-server; \
+    alma-server --version
+
 # Keep /workspace on the same mount as home: pnpm picks one store per mount and
 # hardlinks can't cross mounts, so a separate /workspace mount duplicates stores.
 RUN rm -rf /workspace && ln -s /home/paseo/workspace /workspace

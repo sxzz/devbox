@@ -5,7 +5,7 @@ Shared by Claude Code, Codex, pi and Grok. Keep it agent-neutral and short: only
 Source: `config/AGENTS.md` in the devbox repo (`/workspace/devbox`). On every container start it is copied to each agent's global instructions file, overwriting them; edit the repo copy, never the copies in home. Changes take effect after `scripts/rebuild` on the host.
 
 ## Environment
-You are running inside the devbox container, launched by Paseo.
+You are running inside the devbox container, launched by Paseo or Alma (alma-server).
 - Only the home directory persists (`/workspace` is a symlink to `~/workspace`); nothing else from the host is mounted.
 - There is no Docker in this container. Do not try to install or start one.
 - The container is a Tailscale node (hostname `devbox`); ports are reachable only over the tailnet at `http://devbox:<port>`. Dev servers must listen on all interfaces, not just `localhost` (e.g. `vite --host`), or I can't open them. The shared Chromium still reaches them on `localhost`.

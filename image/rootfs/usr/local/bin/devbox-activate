@@ -4,6 +4,12 @@
 set -euo pipefail
 src=/etc/devbox
 
+# paseo and alma share this home and start together; interleaved runs could
+# leave two managed blocks in the codex config.
+mkdir -p "$HOME/.cache/devbox"
+exec 9>"$HOME/.cache/devbox/activate.lock"
+flock 9
+
 install -D -m 644 "$src/AGENTS.md" "$CLAUDE_CONFIG_DIR/CLAUDE.md"
 install -D -m 644 "$src/AGENTS.md" "$CODEX_HOME/AGENTS.md"
 install -D -m 644 "$src/AGENTS.md" "$HOME/.pi/agent/AGENTS.md"

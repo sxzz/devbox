@@ -1,6 +1,6 @@
 # devbox
 
-A declaratively maintained development environment for coding agents, built with Docker: a paseo daemon plus a shared Chromium, running on the local OrbStack.
+A declaratively maintained development environment for coding agents, built with Docker: a paseo daemon and an alma-server running side by side on the same image and home, plus a shared Chromium, running on the local OrbStack.
 
 - **The repo holds only declarations**: the image, tool versions, agent config and compose file all live here. Changes take effect after `scripts/rebuild`.
 - **State lives outside the repo**: `$DATA_DIR` (default `~/app/paseo`) holds credentials, the browser profile and, under `paseo-home/workspace`, the projects (`/workspace` inside the container is a symlink to `~/workspace`). Rebuilds don't touch it.
@@ -10,7 +10,7 @@ A declaratively maintained development environment for coding agents, built with
 
 | Path | Purpose |
 | --- | --- |
-| `image/Dockerfile` | Based on the official paseo image (latest); installs the latest mise, rustup with the latest stable Rust (`/opt/rustup`, `/opt/cargo`), and apt packages |
+| `image/Dockerfile` | Based on the official paseo image (latest); installs the latest mise, rustup with the latest stable Rust (`/opt/rustup`, `/opt/cargo`), the latest alma-server (`/opt/alma-server`), and apt packages |
 | `image/mise.toml` | Tool list: agent-browser, gh, gogcli, bun, pnpm, claude-code, codex, pi, grok, playwright-mcp, all at latest |
 | `image/apt.txt` | Extra Debian packages |
 | `config/AGENTS.md` | Instructions for agents, synced on start to the global instruction files of claude, codex and pi, and to `~/.grok/rules/devbox.md` for grok |
@@ -20,7 +20,7 @@ A declaratively maintained development environment for coding agents, built with
 | `config/gitconfig` | Included from `~/.gitconfig`: git defaults for agents and the gh credential helper |
 | `config/claude-settings.json` | Deep-merged into `~/.claude/settings.json`; keys here override existing values |
 | `image/rootfs/usr/local/bin/devbox-activate` | Runs on every container start and syncs `config/` into home |
-| `compose.yml` | Three services: `tailscale` (owns the network and is its own tailnet node), `browser` (Chromium) and `paseo`; the latter two share tailscale's network |
+| `compose.yml` | `tailscale` (owns the network and is its own tailnet node), `browser` (Chromium), `paseo`, `alma` (alma-server) and `alma-web` (forwards the alma web UI to the host); all but tailscale share tailscale's network, and paseo and alma share the same home |
 
 Config falls into two kinds:
 - Files and blocks managed by `config/` are overwritten on every start. Change them in the repo, not inside the container.
@@ -45,8 +45,11 @@ Upgrading: the paseo base image, mise, Rust stable and everything in `image/mise
 | paseo daemon | `127.0.0.1:6767`, or `$TAILSCALE_IP:6767` over Tailscale; password is `PASEO_PASSWORD`. There is no bundled web UI; use the hosted app.paseo.sh, the desktop app or the mobile app |
 | Dev servers | `http://devbox:<port>` (MagicDNS) or the container's own tailnet IP, from any device in the tailnet. Servers must listen on `0.0.0.0`, not just `localhost` |
 | Browser desktop | `https://127.0.0.1:6901`, self-signed certificate, username `devbox`, password is `BROWSER_PASSWORD` |
+| alma web UI | `http://devbox:23001` from the tailnet, or `http://127.0.0.1:23001` on the host. **No password**: anyone on the tailnet can control alma and run shell commands in the container |
 
 app.paseo.sh, the mobile app and the desktop app can all connect directly with the address and password above (from inside the tailnet). For devices outside Tailscale, run `scripts/shell paseo daemon pair` to enable the relay, then paste the pairing link.
+
+The Alma iOS app reaches alma-server through the Alma relay, end-to-end encrypted: copy a relay token from https://community.alma.now/connect-desktop, run `scripts/shell alma-server pair --token <token>` and scan the QR code. `scripts/shell alma-server status` shows what is connected. Tools run without asking (`ALMA_TOOL_APPROVAL=auto`).
 
 For everyday chats that don't involve code, use the `/workspace/chat` project (a plain directory, not a git repo).
 
@@ -54,6 +57,7 @@ For everyday chats that don't involve code, use the `/workspace/chat` project (a
 
 1. `cp .env.example .env`, generate the two passwords and fill them in along with `TAILSCALE_IP` and `TS_AUTHKEY` (an auth key from the Tailscale admin console; the container joins the tailnet as `devbox`, and the login persists in `$DATA_DIR/tailscale`, so the key can be removed from `.env` afterwards), run `chmod 600 .env`, then run `scripts/rebuild`.
 2. Agent login (credentials are stored in `$DATA_DIR/paseo-home`): run `scripts/shell`, then `claude`, `codex`, `pi` and `grok` in turn.
+   - Alma: open its web UI and add providers and models in Settings. Its data lives in `~/.local/share/alma` and `~/.config/alma` in the same home.
 3. GitHub bot:
    - Register a bot account and add it as a collaborator with Write access to the target repos.
    - Fill in `DEVBOX_GIT_NAME`/`DEVBOX_GIT_EMAIL` in `.env`, then run `scripts/rebuild`.

@@ -1,9 +1,27 @@
 name: devbox
 
+# Environment shared by every service that runs agents (paseo and alma).
+x-agent-env: &agent-env
+  TZ: ${TZ:-UTC}
+  # paseo terminals start $SHELL (falling back to /bin/sh). The login shell in
+  # /etc/passwd stays bash, which agents use for their own commands.
+  SHELL: /usr/bin/fish
+  # agent-browser drives the shared Chromium by default instead of launching
+  # its own; the image ships no browser.
+  AGENT_BROWSER_CDP: "9222"
+  # gog keeps OAuth tokens in its encrypted file keyring under the persistent
+  # home; there is no Secret Service here. The disabled bus stops the keyring
+  # library from trying to spawn a session bus.
+  GOG_KEYRING_BACKEND: file
+  GOG_KEYRING_PASSWORD: ${GOG_KEYRING_PASSWORD:-}
+  DBUS_SESSION_BUS_ADDRESS: "disabled:"
+  DEVBOX_GIT_NAME: ${DEVBOX_GIT_NAME:-}
+  DEVBOX_GIT_EMAIL: ${DEVBOX_GIT_EMAIL:-}
+
 services:
-  # Owns the network namespace shared by browser and paseo, so the container is
-  # itself a tailnet node: every port agents listen on (dev servers) is
-  # reachable from the tailnet at http://devbox:<port>.
+  # Owns the network namespace shared by browser, paseo and alma, so the
+  # container is itself a tailnet node: every port agents listen on (dev
+  # servers) is reachable from the tailnet at http://devbox:<port>.
   tailscale:
     image: tailscale/tailscale:latest
     container_name: devbox-tailscale
@@ -21,12 +39,16 @@ services:
       - NET_ADMIN
     volumes:
       - ${DATA_DIR:?}/tailscale:/var/lib/tailscale
-    # Chromium and paseo share this network, so their ports are published here.
+    # Chromium, paseo and alma share this network, so their ports are published
+    # here.
     ports:
       - 127.0.0.1:6767:6767
       - ${TAILSCALE_IP:?}:6767:6767
       - 127.0.0.1:6901:6901
       - ${TAILSCALE_IP:?}:6901:6901
+      # alma web UI through alma-web. On the tailnet it is http://devbox:23001
+      # without publishing; the host's own tailnet IP is left out.
+      - 127.0.0.1:23001:23001
 
   browser:
     image: lscr.io/linuxserver/chromium@sha256:f2d4b8b284918d8d65e10921e2fc84c57fd7edbc15345ddb3c024f0949f0031c
@@ -46,7 +68,7 @@ services:
       # Keep the desktop off 3000/3001 so agents' dev servers can use them.
       CUSTOM_PORT: 6900
       CUSTOM_HTTPS_PORT: 6901
-      # Chrome only binds CDP to localhost; paseo shares this network namespace.
+      # Chrome only binds CDP to localhost; paseo and alma share this network.
       CHROME_CLI: --remote-debugging-port=9222 --user-data-dir=/config/chromium-cdp
       # The image launches Chromium once; without its watchdog, a closed window
       # or a desktop teardown leaves agents with no CDP until the next restart.
@@ -67,23 +89,50 @@ services:
       - tailscale
       - browser
     environment:
+      <<: *agent-env
       PASEO_PASSWORD: ${PASEO_PASSWORD:?}
       # Clients use the hosted app (app.paseo.sh) instead of the bundled web UI.
       PASEO_WEB_UI_ENABLED: "false"
-      TZ: ${TZ:-UTC}
-      # paseo terminals start $SHELL (falling back to /bin/sh). The login shell in
-      # /etc/passwd stays bash, which agents use for their own commands.
-      SHELL: /usr/bin/fish
-      # agent-browser drives the shared Chromium by default instead of launching
-      # its own; the image ships no browser.
-      AGENT_BROWSER_CDP: "9222"
-      # gog keeps OAuth tokens in its encrypted file keyring under the persistent
-      # home; there is no Secret Service here. The disabled bus stops the keyring
-      # library from trying to spawn a session bus.
-      GOG_KEYRING_BACKEND: file
-      GOG_KEYRING_PASSWORD: ${GOG_KEYRING_PASSWORD:-}
-      DBUS_SESSION_BUS_ADDRESS: "disabled:"
-      DEVBOX_GIT_NAME: ${DEVBOX_GIT_NAME:-}
-      DEVBOX_GIT_EMAIL: ${DEVBOX_GIT_EMAIL:-}
     volumes:
       - ${DATA_DIR:?}/paseo-home:/home/paseo
+
+  # alma-server (Alma without a desktop), running next to paseo from the same
+  # image and home, so both see the same agents, logins and /workspace. It
+  # can only listen on loopback and has no authentication; alma-web exposes
+  # it. Phones reach it through the Alma relay
+  # (`scripts/shell alma-server pair --token ...`).
+  alma:
+    image: devbox:latest
+    pull_policy: never
+    container_name: alma
+    restart: unless-stopped
+    network_mode: service:tailscale
+    depends_on:
+      - tailscale
+      - browser
+    # The upstream entrypoint runs any given command as the paseo user.
+    command: ["alma-server"]
+    environment:
+      <<: *agent-env
+      # Run tools without asking, like the paseo agents.
+      ALMA_TOOL_APPROVAL: auto
+      # Off 23001, which alma-web takes on every interface.
+      ALMA_PORT: "23002"
+    volumes:
+      - ${DATA_DIR:?}/paseo-home:/home/paseo
+
+  # Serves alma's loopback-only port on 23001 on every interface: the host's
+  # 127.0.0.1:23001, http://devbox:23001 on the tailnet, and localhost:23001
+  # here (the shared Chromium, `alma-server status` from the paseo container).
+  # There is no password: anyone on the tailnet controls alma, including
+  # running shell commands in the container.
+  alma-web:
+    image: devbox:latest
+    pull_policy: never
+    container_name: alma-web
+    restart: unless-stopped
+    network_mode: service:tailscale
+    depends_on:
+      - alma
+    user: "1000:1000"
+    entrypoint: ["socat", "TCP4-LISTEN:23001,fork,reuseaddr", "TCP:127.0.0.1:23002"]
