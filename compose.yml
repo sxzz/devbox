@@ -9,18 +9,32 @@ services:
     container_name: devbox-tailscale
     hostname: devbox
     restart: unless-stopped
+    # tailscaled resolves the operator by name in its own /etc/passwd, so add a
+    # user with paseo's uid before handing over to the image's entrypoint.
+    entrypoint:
+      - /bin/sh
+      - -c
+      - id paseo >/dev/null 2>&1 || adduser -D -H -u 1000 paseo; exec /usr/local/bin/containerboot
     environment:
       TS_HOSTNAME: devbox
       TS_STATE_DIR: /var/lib/tailscale
       # Only needed for the first login; the node key is kept in the state dir.
       TS_AUTHKEY: ${TS_AUTHKEY:-}
       TS_USERSPACE: "false"
+      # Shared with paseo, where the tailscale CLI finds it at its default path.
+      TS_SOCKET: /var/run/tailscale/tailscaled.sock
+      # containerboot runs `tailscale up` on every start. --operator gives the
+      # paseo user write access to the CLI; --reset makes up apply exactly these
+      # flags, so prefs agents change with `tailscale set` can't make it refuse
+      # to start, and they are reverted on restart.
+      TS_EXTRA_ARGS: --operator=paseo --reset
     devices:
       - /dev/net/tun:/dev/net/tun
     cap_add:
       - NET_ADMIN
     volumes:
       - ${DATA_DIR:?}/tailscale:/var/lib/tailscale
+      - tailscale-socket:/var/run/tailscale
     # Chromium and paseo share this network, so their ports are published here.
     ports:
       - 127.0.0.1:6767:6767
@@ -87,3 +101,7 @@ services:
       DEVBOX_GIT_EMAIL: ${DEVBOX_GIT_EMAIL:-}
     volumes:
       - ${DATA_DIR:?}/paseo-home:/home/paseo
+      - tailscale-socket:/var/run/tailscale:ro
+
+volumes:
+  tailscale-socket:

@@ -83,6 +83,10 @@ RUN --mount=type=cache,target=/var/cache/devbox-rust,sharing=locked \
 # hardlinks can't cross mounts, so a separate /workspace mount duplicates stores.
 RUN rm -rf /workspace && ln -s /home/paseo/workspace /workspace
 
+# CLI for the tailscaled in the tailscale service, reached through the shared
+# socket. Static binary from the same image, so it matches the daemon's version.
+COPY --from=tailscale/tailscale:latest /usr/local/bin/tailscale /usr/local/bin/tailscale
+
 COPY config/ /etc/devbox/
 COPY image/rootfs/ /
 RUN chmod +x /usr/local/bin/devbox-* /usr/local/lib/devbox/bin/*
