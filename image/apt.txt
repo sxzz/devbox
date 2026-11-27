@@ -2,6 +2,7 @@
 build-essential
 ffmpeg
 fish
+htop
 jq
 python3
 ripgrep

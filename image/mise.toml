@@ -12,6 +12,9 @@ pnpm = "latest"
 "npm:@earendil-works/pi-coding-agent" = "latest"
 grok = "latest"
 "npm:@playwright/mcp" = "latest"
+# From mise rather than apt: bookworm ships btop 1.2.
+btop = "latest"
+dua = "latest"
 
 [settings]
 minimum_release_age = "0"
