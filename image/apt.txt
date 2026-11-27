@@ -1,9 +1,9 @@
-# Extra Debian packages on top of the paseo base image
+# Extra Debian packages on top of the paseo base image. Only what links against
+# system libraries or isn't in the mise registry; other CLIs go in mise.toml,
+# since Debian stable keeps them at the versions frozen at its release.
 build-essential
 ffmpeg
 fish
 htop
-jq
 python3
-ripgrep
 unzip
